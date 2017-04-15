@@ -12,6 +12,7 @@ var connection = mysql.createConnection(
 		database:'nodejs'
 	}
 );
+connection.connect();
 
 server.listen(3000);
 
@@ -32,8 +33,7 @@ io.on('connection', function (socket) {
 		{
 			console.log("新对象请求注册:",data.name);
 			var response = {state:'ok'};
-			//数据库连接并查重
-			connection.connect();
+			//数据库并查重
 			connection.query('SELECT * FROM `mytable`', function(err,rows,fields)
 				{
 					if(err)
@@ -61,11 +61,10 @@ io.on('connection', function (socket) {
 						else
 							console.log('注册失败!');
 					}
+					socket.emit('register',response);
+					console.log('返回对象值:',response);
 				}
 			);
-
-			socket.emit('register',response);
-			console.log('返回对象值:',response);
 		}
 	);
 
