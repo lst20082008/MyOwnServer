@@ -62,7 +62,7 @@ io.on('connection', function (socket) {
 							console.log('注册失败!');
 					}
 					socket.emit('register',response);
-					console.log('返回对象值:',response);
+					console.log('返回对象值:',response.state);
 				}
 			);
 		}
@@ -70,7 +70,31 @@ io.on('connection', function (socket) {
 
 	socket.on('log in',function(data)
 		{
-
+			console.log('用户请求登陆：',data.name);
+			var response = 	{state:'error',name:'',item:[]};
+			connection.query('SELECT * FROM `mytable`', function(err,rows,fields)
+				{
+					if(err)
+						response.state = 'error';
+					else
+						rows.forEach(function(name)
+							{
+								if(name.name === data.name)
+								{
+									response.state = 'ok';
+									response.name = data.name;
+									response.item.push(name.item1);
+									response.item.push(name.item2);
+									response.item.push(name.item3);
+									response.item.push(name.item4);
+									response.item.push(name.item5);
+									response.item.push(name.item6);
+								}
+							})
+					socket.emit('log in',response);
+					console.log('用户登陆请求返回:',response.state);
+				}
+			);
 		}
 	);
 });
