@@ -19,6 +19,7 @@ server.listen(3000);
 //服务器全局变量
 //拥有角色的玩家
 var clients = [];
+var spawnPoint = [];
 
 app.get('/', function (req, res) {
     res.send('hey you get back get "/"');
@@ -91,12 +92,86 @@ io.on('connection', function (socket) {
 									response.item.push(name.item6);
 								}
 							})
+					currentPlayer.name = data.name;
 					socket.emit('log in',response);
 					console.log('用户登陆请求返回:',response.state);
 				}
 			);
 		}
 	);
+
+	socket.on('player connect',function()
+		{
+		console.log(currentPlayer.name+' recv:player connect');
+		for(var i = 0; i<clients.length;i++)
+		{
+			var playerConnected = {
+				name:clients[i].name,
+				position:clients[i].position,
+				rotation:clients[i].rotation,
+				health:clients[i].health
+			};
+			// in your current game , we need to tell you about the other players.
+			socket.emit('other player connected',playerConnected);
+			console.log(currentPlayer.name+' emit:other player connected: '+JSON.stringify(playerConnected));
+		}
+		}
+	);
+
+	socket.on('play',function(data)
+		{
+			console.log(currentPlayer.name+' recv:play: '+JSON.stringify(data));
+			//if this is the first person to join the game init the enemies
+			if(clients.length === 0)
+			{
+				spawnPoint = {position:data.spawnPointPosition,rotation:data.spawnPointRotation};
+				console.log(spawnPoint.position,spawnPoint.rotation);
+			}
+			currentPlayer = {
+			name:data.name,
+			position:spawnPoint.position,
+			rotation:spawnPoint.rotation,
+			health:100
+			};
+			clients.push(currentPlayer);
+			console.log(currentPlayer.name+' emit:play:'+JSON.stringify(currentPlayer));
+			socket.emit('play',currentPlayer);
+			//in your current game, we need to tell the other players about you.
+			socket.broadcast.emit('other player connected',currentPlayer);
+			}
+	);
+
+	socket.on('player move',function(data)
+		{
+			console.log('recv:move:'+JSON.stringify(data));
+			currentPlayer.position = data.position;
+			socket.broadcast.emit('player move',currentPlayer);
+		}
+	);
+
+	socket.on('player turn',function(data)
+		{
+			console.log('recv:turn:'+JSON.stringify(data));
+			currentPlayer.rotation = data.rotation;
+			socket.broadcast.emit('player turn',currentPlayer);
+		}
+	);
+
+	socket.on('disconnect',function()
+		{
+			console.log(currentPlayer.name+' recv:disconnect '+currentPlayer.name);
+			socket.broadcast.emit('other player disconnected', currentPlayer);
+			console.log(currentPlayer.name+' bcst:other player disconnected' + JSON.stringify(currentPlayer));
+			for(var i=0;i<clients.length;i++)
+			{
+				if(clients[i].name === currentPlayer.name)
+				{
+					clients.splice(i,1);
+				}
+			}
+		}
+	);
+
 });
 
 console.log('--- server is running ...');
