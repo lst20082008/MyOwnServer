@@ -157,6 +157,16 @@ io.on('connection', function (socket) {
 		}
 	);
 
+	socket.on('use magic',function(data)
+		{
+			var usemagicres = {name:currentPlayer.name,i:data.i};
+			console.log('recv:magic'+JSON.stringify(data));
+			socket.emit('use magic',usemagicres);
+			socket.broadcast.emit('use magic',usemagicres);
+			console.log(currentPlayer.name,'使用魔法广播');
+		}
+	)
+
 	socket.on('disconnect',function()
 		{
 			console.log(currentPlayer.name+' recv:disconnect '+currentPlayer.name);
