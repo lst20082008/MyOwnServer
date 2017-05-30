@@ -143,7 +143,6 @@ io.on('connection', function (socket) {
 
 	socket.on('player move',function(data)
 		{
-			console.log('recv:move:'+JSON.stringify(data));
 			currentPlayer.position = data.position;
 			socket.broadcast.emit('player move',currentPlayer);
 		}
@@ -151,7 +150,6 @@ io.on('connection', function (socket) {
 
 	socket.on('player turn',function(data)
 		{
-			console.log('recv:turn:'+JSON.stringify(data));
 			currentPlayer.rotation = data.rotation;
 			socket.broadcast.emit('player turn',currentPlayer);
 		}
