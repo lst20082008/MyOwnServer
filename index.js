@@ -8,7 +8,7 @@ var connection = mysql.createConnection(
 	{
 		host:'localhost',
 		user:'root',
-		password:'288794613',
+		password:'288794613aA!@#',
 		database:'nodejs'
 	}
 );
@@ -166,6 +166,28 @@ io.on('connection', function (socket) {
 			console.log(currentPlayer.name,'使用魔法广播');
 		}
 	)
+
+	socket.on('health',function(data){
+		console.log(currentPlayer.name+' recv:health:'+JSON.stringify(data));
+		if(data.from===currentPlayer.name)
+		{
+			var indexDamage = 0;
+			var response = {name:data.name,health:0};
+			clients = clients.map(function(client,index)
+					{
+						if(client.name === data.name)
+						{
+							indexDamage = index;
+							client.health -= data.healthChange;
+							response.health = client.health;
+						}
+						return client;
+					});
+			console.log(currentPlayer.name+' bcst:health:'+JSON.stringify(response));
+			socket.emit('health',response);
+			socket.broadcast.emit('health',response);
+		}
+	})
 
 	socket.on('disconnect',function()
 		{
