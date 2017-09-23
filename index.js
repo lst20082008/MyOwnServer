@@ -1,12 +1,6 @@
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var monk = require('monk');
-
-var db = monk('localhost:27017/game');
-var collection = db.get('account');
-
-
 
 server.listen(3000);
 
@@ -25,59 +19,19 @@ io.on('connection', function (socket) {
 	currentPlayer.name = 'unknown';
 	console.log('一名玩家连接至服务器');
 
-	socket.on('register',function(data)
-		{
-			console.log('新对象请求注册：',data.name);
-			var response = {state:'ok'};
-			collection.findOne({name:data.name},function(err,player)
-			{
-				if(err) response.state = 'error';
-				else
-				{
-					//若没有，则注册
-					if(player === null)
-					{
-						collection.insert({'name':data.name,
-											'item1':'0',
-											'item2':'0',
-											'item3':'0',
-											'item4':'0',
-											'item5':'0',
-											'item6':'0'});
-					}else{
-						response.state = 'error';
-					}
-				}
-				console.log('注册结果为:',response.state);
-				socket.emit('register',response);
-			});
-		});
-
 	socket.on('log in',function(data)
 		{
 			console.log('用户请求登陆：',data.name);
-			var response = 	{state:'error',name:'',item:[]};
-			collection.findOne({name:data.name},function(err,player)
-				{
-					if(err){}
-					else
-					{
-						if(player !== null)
-						{
-							response.state = 'ok';
-							response.name = data.name;
-							response.item.push(player.item1);
-							response.item.push(player.item2);
-							response.item.push(player.item3);
-							response.item.push(player.item4);
-							response.item.push(player.item5);
-							response.item.push(player.item6);
-						}
-					}
-					currentPlayer.name = data.name;
-					socket.emit('log in',response);
-					console.log("请求登陆结果：",response);
-				});
+			var response = 	{state:'ok',name:''};
+			clients.forEach(function(player){
+				if (player.name !== data.name) {
+				}else{
+					response.state = 'error';
+				}
+			});
+			currentPlayer.name = data.name;
+			socket.emit('log in',response);
+			console.log("请求登陆结果：",response);			
 		});
 
 
